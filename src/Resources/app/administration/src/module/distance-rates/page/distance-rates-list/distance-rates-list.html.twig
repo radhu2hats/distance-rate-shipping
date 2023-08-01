@@ -1,0 +1,26 @@
+{% block distance_rates_list %}
+    <sw-page class="rate-mastery-list">
+        {% block distance_rates_list_smart_bar_actions %}
+            <template slot="smart-bar-actions">
+                <sw-button variant="primary" :routerLink="{ name: 'distance.rates.create' }">
+                    {{ $t('distanceRate.list.addButtonText') }}
+                </sw-button>
+            </template>
+        {% endblock %}
+
+        <template slot="content">
+            <sw-card-view>
+            {% block distance_rates_list_content %}
+                <sw-entity-listing
+                    v-if="distanceRates"
+                    :items="distanceRates"
+                    :repository="repository"
+                    :showSelection="false"
+                    :columns="columns"
+                    detailRoute="distance.rates.detail">
+                </sw-entity-listing>
+            {% endblock %}
+            </sw-card-view>
+        </template>
+    </sw-page>
+{% endblock %}

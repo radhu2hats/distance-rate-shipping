@@ -1,0 +1,33 @@
+{% block distance_rates_detail %}
+    <sw-page class="distance-rates-detail">
+        <template slot="smart-bar-actions">
+            
+
+            <sw-button-process
+                :isLoading="isLoading"
+                :processSuccess="processSuccess"
+                variant="primary"
+                @process-finish="saveFinish"
+                @click="onClickSave">
+                {{ $t('distanceRate.detail.saveButtonText') }}
+            </sw-button-process>
+        </template>
+
+        <template slot="content">
+            <sw-card-view>
+                <sw-card v-if="distanceRate" :isLoading="isLoading">
+                    <sw-field :label="$t('distanceRate.detail.titleLabel')" v-model="distanceRate.title"></sw-field>
+                    
+                    <sw-field :label="$t('distanceRate.detail.rangeFromLabel')" v-model="distanceRate.range_from" type="number" ></sw-field>
+
+                    <sw-field :label="$t('distanceRate.detail.rangeToLabel')" v-model="distanceRate.range_to" type="number"></sw-field>
+
+                    <sw-field :label="$t('distanceRate.detail.priceLabel')" v-model="distanceRate.price" type="number"></sw-field>
+                    
+                    <sw-switch-field style="margin-top: 0; margin-bottom: 0" type="switch" :label="$tc('distanceRate.detail.activateLabel')" v-model="distanceRate.status"></sw-switch-field>
+                            
+                </sw-card>
+            </sw-card-view>
+        </template>
+    </sw-page>
+{% endblock %}

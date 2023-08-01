@@ -1,0 +1,28 @@
+{
+    "distanceRate": {
+        "general": {
+            "mainMenuItemGeneral": "Distance Rate Shipping",
+            "descriptionTextModule": "Manage Rates here"
+        },
+        "list": {
+            "addButtonText": "Add Rate",
+            "columnId": "ID",
+            "columnTitle": "Title",
+            "columnRangeFrom": "Range From",
+            "columnRangeTo": "Range To",
+            "columnPrice": "Price",
+            "activateLabel" : "Active / Inactive"
+        },
+        "detail": {
+            "titleLabel": "Title",
+            "rangeFromLabel": "Range From",
+            "rangeToLabel": "Range To",
+            "priceLabel": "Price",
+            "activateLabel": "Active / Inactive",
+            "cancelButtonText": "Cancel",
+            "saveButtonText": "Save",
+            "errorTitle": "Error saving the rate"
+        }
+    }
+
+}

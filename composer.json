@@ -1,0 +1,18 @@
+{
+  "name": "hatslogic/distance-rate-shipping",
+  "description": "Distance Rate Shipping",
+  "type": "shopware-platform-plugin",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "DistanceRateShipping\\": "src/"
+    }
+  },
+  "extra": {
+    "shopware-plugin-class": "DistanceRateShipping\\DistanceRateShipping",
+    "label": {
+      "de-DE": "Distance Rate Shipping",
+      "en-GB": "Distance Rate Shipping"
+    }
+  }
+}
