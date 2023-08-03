@@ -41,6 +41,8 @@ class DistanceRateShipping extends Plugin
     // the key for storing the custom shipping method in the data collection
     public const SHIPPING_METHOD_KEY = 'distance_rate_shipping_method';
 
+    // delievery time id for the 1-3 days
+    public const DEIVERY_TIME_ID = '95206486b0cf4abeb95517af744040a9';
     /**
     * @var EntityRepositoryInterface
     */
@@ -110,7 +112,7 @@ class DistanceRateShipping extends Plugin
         'description' => self::SHIPPING_METHOD_DESCRIPTION,
         'active' => true,
         'availabilityRuleId' => self::AVAILABILITY_RULE_ID,
-        "deliveryTimeId" => "95206486b0cf4abeb95517af744040a9",
+        "deliveryTimeId" => self::DELIVERY_TIME_ID,
         'prices' => [
         [
         'currencyId' => self::CURRENCY_ID,
