@@ -26,8 +26,6 @@ class DistanceRateShipping extends Plugin
     // the id of the custom shipping method
     public const SHIPPING_METHOD_ID = '207d07178bf4402ba55de9ce844c8793';
 
-    // the id of the availability rule for the custom shipping method
-    public const AVAILABILITY_RULE_ID = '28caae75a5624f0d985abd0eb32aa160';
 
     // the id of the currency for the custom shipping method
     public const CURRENCY_ID = 'b7d2554b0ce847cd82f3ac9bd1c0dfca'; // EUR
@@ -41,8 +39,6 @@ class DistanceRateShipping extends Plugin
     // the key for storing the custom shipping method in the data collection
     public const SHIPPING_METHOD_KEY = 'distance_rate_shipping_method';
 
-    // delievery time id for the 1-3 days
-    public const DELIVERY_TIME_ID = '95206486b0cf4abeb95517af744040a9';
     /**
     * @var EntityRepositoryInterface
     */
@@ -56,7 +52,22 @@ class DistanceRateShipping extends Plugin
     /**
     * @var EntityRepositoryInterface
     */
+    private $deliveryTimeRepository;
+
+    /**
+    * @var EntityRepositoryInterface
+    */
     private $salesChannelRepository;
+
+    /**
+    * @var string
+    */
+    private $deliveryTimeId;
+
+    /**
+    * @var string
+    */
+    private $avialabilityRuleId;
 
     public function build(ContainerBuilder $container): void
     {
@@ -77,8 +88,17 @@ class DistanceRateShipping extends Plugin
         // get the repositories for shipping method, rule and sales channel entities
         $this->shippingMethodRepository = $this->container->get('shipping_method.repository');
         $this->salesChannelRepository = $this->container->get('sales_channel.repository');
+        $this->ruleRepository = $this->container->get('rule.repository');
+        $this->deliveryTimeRepository = $this->container->get('delivery_time.repository');
+        $this->avialabilityRuleId = $this->ruleRepository->search(
+            (new Criteria()),
+            $salesChannelContext
+        )->first()->getId();
 
-
+        $this->deliveryTimeId = $this->deliveryTimeRepository->search(
+            (new Criteria()),
+            $salesChannelContext
+        )->first()->getId();
         // create a new shipping method entity and persist it to the database
         $this->createShippingMethod($salesChannelContext);
 
@@ -112,8 +132,8 @@ class DistanceRateShipping extends Plugin
         'name' => self::SHIPPING_METHOD_NAME,
         'description' => self::SHIPPING_METHOD_DESCRIPTION,
         'active' => true,
-        'availabilityRuleId' => self::AVAILABILITY_RULE_ID,
-        "deliveryTimeId" => self::DELIVERY_TIME_ID,
+        'availabilityRuleId' => $this->avialabilityRuleId,
+        "deliveryTimeId" => $this->deliveryTimeId,
         'prices' => [
         [
         'currencyId' => self::CURRENCY_ID,
@@ -143,7 +163,7 @@ class DistanceRateShipping extends Plugin
             $context
         )->first();
 
-        
+
         if (!$newShippingMethod) {
             return;
         }
@@ -160,11 +180,11 @@ class DistanceRateShipping extends Plugin
         // Prepare the data for updating sales channels
         $salesChannelData = [];
         foreach ($salesChannels as $salesChannel) {
-            
+
             $shippingMethods = $salesChannel->getShippingMethods();
-            
+
             $shippingMethods->add($newShippingMethod);
-            
+
             $salesChannelData[] = [
                 'id' => $salesChannel->getId(),
                 'shippingMethods' => $shippingMethods,
