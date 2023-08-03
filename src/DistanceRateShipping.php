@@ -167,10 +167,6 @@ class DistanceRateShipping extends Plugin
         if (!$newShippingMethod) {
             return;
         }
-
-        $newShippingMethod->setName(self::SHIPPING_METHOD_NAME);
-        $newShippingMethod->setAvailabilityRuleId(self::AVAILABILITY_RULE_ID);
-        $newShippingMethod->setDeliveryTimeId(self::DELIVERY_TIME_ID);
         // Fetch all sales channels
         $criteria = new Criteria();
         $criteria->addAssociation('shippingMethods');
