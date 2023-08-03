@@ -8,5 +8,6 @@
         <service id="DistanceRateShipping\Core\Content\DistanceRate\DistanceRateDefinition">
             <tag name="shopware.entity.definition" entity="distance_rate" />
         </service>
+        
     </services>
 </container>
