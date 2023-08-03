@@ -19,7 +19,7 @@ use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-
+use Shopware\Core\Framework\Context;
 
 class DistanceRateShipping extends Plugin
 {
@@ -42,7 +42,7 @@ class DistanceRateShipping extends Plugin
     public const SHIPPING_METHOD_KEY = 'distance_rate_shipping_method';
 
     // delievery time id for the 1-3 days
-    public const DEIVERY_TIME_ID = '95206486b0cf4abeb95517af744040a9';
+    public const DELIVERY_TIME_ID = '95206486b0cf4abeb95517af744040a9';
     /**
     * @var EntityRepositoryInterface
     */
@@ -64,7 +64,7 @@ class DistanceRateShipping extends Plugin
 
         $this->container = $container;
 
-       
+
     }
 
     public function install(InstallContext $context): void
@@ -74,16 +74,16 @@ class DistanceRateShipping extends Plugin
 
         $salesChannelContext = $context->getContext();
 
-         // get the repositories for shipping method, rule and sales channel entities
-         $this->shippingMethodRepository = $this->container->get('shipping_method.repository');
-         $this->salesChannelRepository = $this->container->get('sales_channel.repository');
-        
+        // get the repositories for shipping method, rule and sales channel entities
+        $this->shippingMethodRepository = $this->container->get('shipping_method.repository');
+        $this->salesChannelRepository = $this->container->get('sales_channel.repository');
+
 
         // create a new shipping method entity and persist it to the database
         $this->createShippingMethod($salesChannelContext);
 
         // assign the custom shipping method to all sales channels
-        //$this->assignShippingMethodToSalesChannels($salesChannelContext);
+        //$this->assignNewShippingMethodToSalesChannels();
     }
 
     public function uninstall(UninstallContext $context): void
@@ -95,13 +95,14 @@ class DistanceRateShipping extends Plugin
 
         $this->shippingMethodRepository = $this->container->get('shipping_method.repository');
         // delete the custom shipping method entity from the database
-        $this->deleteShippingMethod($salesChannelContext );
+        $this->deleteShippingMethod($salesChannelContext);
 
+        $this->dropRatesTable($context);
         // delete the availability rule entity from the database
-        
+
     }
 
-    
+
 
     private function createShippingMethod($salesChannelContext): void
     {
@@ -132,29 +133,48 @@ class DistanceRateShipping extends Plugin
         $this->shippingMethodRepository->delete([['id' => self::SHIPPING_METHOD_ID]], $salesChannelContext);
     }
 
-    private function assignShippingMethodToSalesChannels($salesChannelContext): void
+
+    public function assignNewShippingMethodToSalesChannels(): void
     {
+        $context = Context::createDefaultContext();
+        // Get the new shipping method entity by its ID
+        $newShippingMethod = $this->shippingMethodRepository->search(
+            (new Criteria([self::SHIPPING_METHOD_ID])),
+            $context
+        )->first();
+
         
-        // get all sales channels from the sales channel repository
-        $salesChannels = $this->salesChannelRepository->search(new Criteria(), $salesChannelContext)->getElements();
-
-        // loop through each sales channel
-        foreach ($salesChannels as $salesChannel) {
-            // get the current shipping methods of the sales channel
-            $shippingMethods = $salesChannel->getShippingMethods();
-
-            // add the custom shipping method to the shipping methods collection
-            $shippingMethods->add($this->shippingMethodRepository->search(new Criteria([self::SHIPPING_METHOD_ID]), $context)->first());
-
-            // update the sales channel with the new shipping methods collection
-            $this->salesChannelRepository->update([
-            [
-            'id' => $salesChannel->getId(),
-            'shippingMethods' => $shippingMethods,
-            ],
-            ], $context);
+        if (!$newShippingMethod) {
+            return;
         }
+
+        $newShippingMethod->setName(self::SHIPPING_METHOD_NAME);
+        $newShippingMethod->setAvailabilityRuleId(self::AVAILABILITY_RULE_ID);
+        $newShippingMethod->setDeliveryTimeId(self::DELIVERY_TIME_ID);
+        // Fetch all sales channels
+        $criteria = new Criteria();
+        $criteria->addAssociation('shippingMethods');
+
+        $salesChannels = $this->salesChannelRepository->search($criteria, $context)->getEntities();
+
+        // Prepare the data for updating sales channels
+        $salesChannelData = [];
+        foreach ($salesChannels as $salesChannel) {
+            
+            $shippingMethods = $salesChannel->getShippingMethods();
+            
+            $shippingMethods->add($newShippingMethod);
+            
+            $salesChannelData[] = [
+                'id' => $salesChannel->getId(),
+                'shippingMethods' => $shippingMethods,
+            ];
+        }
+        // Update the sales channels
+        $this->salesChannelRepository->update($salesChannelData, $context);
     }
+
+
 
     public function collect(CartDataCollection $data, Cart $original, SalesChannelContext $context, CartBehavior $behavior): void
     {
@@ -165,4 +185,13 @@ class DistanceRateShipping extends Plugin
         $data->set(self::SHIPPING_METHOD_KEY, $shippingMethod);
     }
 
+    public function dropRatesTable($context)
+    {
+        if ($context->keepUserData()) {
+            return;
+        }
+        $this->container->get('Doctrine\DBAL\Connection')->executeStatement(
+            'DROP TABLE `distance_rate`;'
+        );
+    }
 }
